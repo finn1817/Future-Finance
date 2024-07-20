@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dans Financial Tool</title>
+    <style>
+        :root {
+            --primary-color: #3366cc;
+            --secondary-color: #f0f0f0;
+            --text-color: #333;
+            --background-gradient: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+        }
+
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background: var(--background-gradient);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-color);
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin: 20px 0;
+            text-align: center;
+            max-width: 800px;
+            width: 90%;
+            transition: all 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        h1, h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+
+        label, input, select, button {
+            margin: 10px;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        label {
+            display: inline-block;
+            text-align: left;
+            width: calc(100% - 24px);
+            border: none;
+            padding: 0;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 5px rgba(51, 102, 204, 0.5);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background-color: #254e9e;
+        }
+
+        #results, #savingsResults, #retirementResults {
+            margin-top: 20px;
+            background-color: #e6f2ff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .moving-element {
+            position: fixed;
+            font-size: 24px;
+            color: var(--primary-color);
+            animation: move 20s infinite linear;
+            z-index: -1;
+        }
+
+        @keyframes move {
+            0% { left: 0; top: 0; }
+            25% { left: calc(100% - 24px); top: 0; }
+            50% { left: calc(100% - 24px); top: calc(100% - 24px); }
+            75% { left: 0; top: calc(100% - 24px); }
+            100% { left: 0; top: 0; }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                width: 95%;
+                padding: 15px;
+            }
+
+            input, select, button {
+                width: calc(100% - 20px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Money Checker : By Dan Finn!</h1>
+        <h2>Income Calculator</h2>
+        <label for="hoursPerWeek">Hours worked per week (optional):</label>
+        <input type="number" id="hoursPerWeek" placeholder="Enter hours (default: 40)">
+        <input type="number" id="amount" placeholder="Enter amount">
+        <select id="timeFrame">
+            <option value="hour">Per Hour</option>
+            <option value="day">Per Day</option>
+            <option value="week">Per Week</option>
+            <option value="month">Per Month</option>
+            <option value="year">Per Year</option>
+        </select>
+        <button onclick="calculateIncome()">Calculate Income</button>
+        <div id="results"></div>
+        
+        <h2>Savings Projector</h2>
+        <input type="number" id="savingsAmount" placeholder="Amount to save per year">
+        <input type="number" id="savingsYears" placeholder="Number of years">
+        <input type="number" id="interestRate" placeholder="Annual interest rate (%)" step="0.1">
+        <button onclick="calculateSavings()">Project Savings</button>
+        <div id="savingsResults"></div>
+        
+        <h2>Retirement Calculator</h2>
+        <input type="number" id="currentAge" placeholder="Current age">
+        <input type="number" id="retirementAge" placeholder="Desired retirement age">
+        <input type="number" id="currentSavings" placeholder="Current savings">
+        <input type="number" id="monthlyContribution" placeholder="Monthly contribution">
+        <input type="number" id="retirementInterestRate" placeholder="Expected annual return (%)" step="0.1">
+        <button onclick="calculateRetirement()">Calculate Retirement Savings</button>
+        <div id="retirementResults"></div>
+    </div>
+    <div class="moving-element">💰</div>
+
+    <script>
+        function calculateIncome() {
+            const amount = parseFloat(document.getElementById('amount').value);
+            const timeFrame = document.getElementById('timeFrame').value;
+            const hoursPerWeekInput = document.getElementById('hoursPerWeek');
+            const resultsDiv = document.getElementById('results');
+
+            if (isNaN(amount)) {
+                resultsDiv.innerHTML = "Please enter a valid number for the amount.";
+                return;
+            }
+
+            let hourly = 0;
+            let weeklyHours = hoursPerWeekInput.value ? parseFloat(hoursPerWeekInput.value) : 40;
+
+            switch(timeFrame) {
+                case 'hour': hourly = amount; break;
+                case 'day': hourly = amount / 24; break;
+                case 'week': hourly = amount / weeklyHours; break;
+                case 'month': hourly = amount / (weeklyHours * 4.33); break;
+                case 'year': hourly = amount / (weeklyHours * 52); break;
+            }
+
+            const daily = hourly * 24;
+            const weekly = hourly * weeklyHours;
+            const monthly = weekly * 4.33;
+            const yearly = weekly * 52;
+
+            resultsDiv.innerHTML = `
+                <h3>Income Projection:</h3>
+                <p>Hourly: $${hourly.toFixed(2)}</p>
+                <p>Daily (24 hours): $${daily.toFixed(2)}</p>
+                <p>Weekly (${weeklyHours} hours): $${weekly.toFixed(2)}</p>
+                <p>Monthly: $${monthly.toFixed(2)}</p>
+                <p>Yearly: $${yearly.toFixed(2)}</p>
+            `;
+        }
+
+        function calculateSavings() {
+            const savingsAmount = parseFloat(document.getElementById('savingsAmount').value);
+            const years = parseInt(document.getElementById('savingsYears').value);
+            const interestRate = parseFloat(document.getElementById('interestRate').value) / 100;
+            const savingsResultsDiv = document.getElementById('savingsResults');
+
+            if (isNaN(savingsAmount) || isNaN(years) || isNaN(interestRate)) {
+                savingsResultsDiv.innerHTML = "Please enter valid numbers for all fields.";
+                return;
+            }
+
+            let total = 0;
+            for (let i = 0; i < years; i++) {
+                total += savingsAmount;
+                total *= (1 + interestRate);
+            }
+
+            savingsResultsDiv.innerHTML = `
+                <h3>Savings Projection:</h3>
+                <p>If you save $${savingsAmount.toFixed(2)} per year for ${years} years at an annual interest rate of ${(interestRate * 100).toFixed(2)}%,</p>
+                <p>You would have: $${total.toFixed(2)}</p>
+            `;
+        }
+
+        function calculateRetirement() {
+            const currentAge = parseInt(document.getElementById('currentAge').value);
+            const retirementAge = parseInt(document.getElementById('retirementAge').value);
+            const currentSavings = parseFloat(document.getElementById('currentSavings').value);
+            const monthlyContribution = parseFloat(document.getElementById('monthlyContribution').value);
+            const annualReturn = parseFloat(document.getElementById('retirementInterestRate').value) / 100;
+            const retirementResultsDiv = document.getElementById('retirementResults');
+
+            if (isNaN(currentAge) || isNaN(retirementAge) || isNaN(currentSavings) || isNaN(monthlyContribution) || isNaN(annualReturn)) {
+                retirementResultsDiv.innerHTML = "Please enter valid numbers for all fields.";
+                return;
+            }
+
+            const yearsUntilRetirement = retirementAge - currentAge;
+            const monthlyReturn = Math.pow(1 + annualReturn, 1/12) - 1;
+            let totalSavings = currentSavings;
+
+            for (let i = 0; i < yearsUntilRetirement * 12; i++) {
+                totalSavings += monthlyContribution;
+                totalSavings *= (1 + monthlyReturn);
+            }
+
+            retirementResultsDiv.innerHTML = `
+                <h3>Retirement Savings Projection:</h3>
+                <p>Starting with $${currentSavings.toFixed(2)} and contributing $${monthlyContribution.toFixed(2)} monthly,</p>
+                <p>At an annual return of ${(annualReturn * 100).toFixed(2)}%, by age ${retirementAge} you would have:</p>
+                <p>$${totalSavings.toFixed(2)}</p>
+            `;
+        }
+    </script>
+</body>
+</html>
